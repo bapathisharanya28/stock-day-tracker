@@ -35,6 +35,9 @@ Built with zero placeholders, simulated data, or fake numbers. All Open, High, L
 ```
 indian-stock-tracker/
 ├── server.py             # Python HTTP & REST API server with live exchange integrations
+├── api/
+│   └── index.py          # Vercel serverless API adapter
+├── vercel.json           # Vercel routing for API and static files
 ├── requirements.txt      # Optional dependencies (requests)
 ├── start.bat             # 1-click Windows launcher
 ├── start.sh              # 1-click Linux/macOS launcher
@@ -67,6 +70,27 @@ python server.py
 ```bash
 python3 server.py
 ```
+
+### Deploy to Vercel
+
+The project includes a Vercel serverless adapter. The existing local server
+and frontend behavior remain unchanged.
+
+1. Import this project into Vercel from GitHub, or run the Vercel CLI from the
+   project directory.
+2. Leave the build command empty and deploy with the **Other** framework
+   preset.
+3. Vercel will install the dependency listed in `requirements.txt`.
+
+Using the CLI:
+```bash
+npm install -g vercel
+vercel
+```
+
+The deployed site serves the existing `static/` frontend and exposes the same
+API routes under `/api`. If needed, add `ALPHA_VANTAGE_KEY` under Vercel
+**Project Settings > Environment Variables**.
 
 ### Step 2: Open in Browser
 Visit:
