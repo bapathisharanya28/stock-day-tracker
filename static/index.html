@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian Stock Market Tracker | NSE & BSE Live</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Header & Navigation -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="brand-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+            <polyline points="16 7 22 7 22 13"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">Indian Stock Market Tracker</h1>
+            <span class="badge badge-nse">NSE / BSE Live</span>
+          </div>
+          <p class="brand-subtitle">Real-time OHLC market metrics in Indian Rupees (₹) with zero placeholders</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="market-status-pill" id="marketStatusIndicator">
+          <span class="pulse-dot"></span>
+          <span id="marketStatusText">Live Data Connected</span>
+        </div>
+        <button id="btnFetchAll" class="btn btn-primary" title="Refresh all monitored stocks">
+          <svg class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+          </svg>
+          <span>Fetch All Stocks</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Control Center & Timeframe Switcher Bar -->
+    <section class="control-panel">
+      <!-- Search & Add Stock -->
+      <div class="search-section">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="stockSearchInput" 
+            placeholder="Search ticker (e.g. RELIANCE, TCS, INFY, SBIN, TATAMOTORS)..." 
+            autocomplete="off"
+          />
+          <button id="btnClearSearch" class="btn-clear hidden">&times;</button>
+          <!-- Auto-suggestions dropdown -->
+          <div id="searchSuggestions" class="search-suggestions hidden"></div>
+        </div>
+        <button id="btnAddStock" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add Stock</span>
+        </button>
+      </div>
+
+      <!-- Timeframe Toggle Switcher -->
+      <div class="timeframe-container">
+        <span class="timeframe-label">TIMEFRAME:</span>
+        <div class="timeframe-switch" role="tablist">
+          <button class="timeframe-btn active" data-timeframe="daily" role="tab" aria-selected="true">
+            <span class="tf-title">Daily</span>
+            <span class="tf-sub">Latest Session</span>
+          </button>
+          <button class="timeframe-btn" data-timeframe="weekly" role="tab" aria-selected="false">
+            <span class="tf-title">Weekly</span>
+            <span class="tf-sub">5-Day Breakdown</span>
+          </button>
+          <button class="timeframe-btn" data-timeframe="monthly" role="tab" aria-selected="false">
+            <span class="tf-title">Monthly</span>
+            <span class="tf-sub">Full Month Breakdown</span>
+          </button>
+        </div>
+        <label class="month-picker hidden" id="monthPicker">
+          <span>SELECT MONTH:</span>
+          <input type="month" id="monthInput" aria-label="Select month for monthly data">
+        </label>
+      </div>
+    </section>
+
+    <!-- Quick Quick-Pill Recommendations -->
+    <div class="popular-pills">
+      <span class="pills-title">Popular Indian Tickers:</span>
+      <button class="ticker-pill" data-symbol="RELIANCE.NS">RELIANCE</button>
+      <button class="ticker-pill" data-symbol="TCS.NS">TCS</button>
+      <button class="ticker-pill" data-symbol="INFY.NS">INFY</button>
+      <button class="ticker-pill" data-symbol="HDFCBANK.NS">HDFC BANK</button>
+      <button class="ticker-pill" data-symbol="ICICIBANK.NS">ICICI BANK</button>
+      <button class="ticker-pill" data-symbol="SBIN.NS">SBI</button>
+      <button class="ticker-pill" data-symbol="BHARTIARTL.NS">BHARTI AIRTEL</button>
+      <button class="ticker-pill" data-symbol="ITC.NS">ITC</button>
+    </div>
+
+    <!-- Feedback Notification Toast -->
+    <div id="toastMessage" class="toast hidden"></div>
+
+    <!-- Main Stock Table Card Container -->
+    <main class="main-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <h2 class="section-heading" id="viewHeading">Market Watchlist</h2>
+          <span class="view-indicator" id="viewIndicator">Daily Summary View</span>
+        </div>
+        <div class="card-header-right">
+          <span class="last-sync-tag" id="lastSyncTime">Last sync: Just now</span>
+        </div>
+      </div>
+
+      <!-- Spacious Accordion Stocks Table -->
+      <div class="table-responsive">
+        <table class="stocks-table" id="stocksTable">
+          <thead>
+            <tr>
+              <th class="col-expand"></th>
+              <th class="col-stock">Stock / Company</th>
+              <th class="col-price text-right">LTP (₹)</th>
+              <th class="col-change text-right">Day Change</th>
+              <th class="col-open text-right" id="thOpen">Open (₹)</th>
+              <th class="col-high text-right" id="thHigh">High (₹)</th>
+              <th class="col-low text-right" id="thLow">Low (₹)</th>
+              <th class="col-close text-right" id="thClose">Close (₹)</th>
+              <th class="col-actions text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stocksTableBody">
+            <!-- Dynamic rows will be injected here -->
+          </tbody>
+        </table>
+
+        <!-- Loading Spinner Container -->
+        <div id="tableLoading" class="table-loading hidden">
+          <div class="spinner"></div>
+          <p class="loading-text">Fetching real-time quotes from Indian exchanges...</p>
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="tableEmptyState" class="empty-state hidden">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <h3>No Stocks in Watchlist</h3>
+          <p>Add tickers like <strong>RELIANCE.NS</strong>, <strong>TCS.NS</strong>, or click the quick pills above.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Information -->
+    <footer class="app-footer">
+      <div class="footer-info">
+        <p><strong>Indian Stock Market Tracker</strong> &bull; Direct Live Feeds from National Stock Exchange (NSE) & Bombay Stock Exchange (BSE).</p>
+        <p class="text-muted">Metrics: Open, High, Low, Close (OHLC) in Indian Rupees (₹). Expand any stock row in Weekly/Monthly mode to inspect trading day breakdowns.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/app.js"></script>
+</body>
+</html>
